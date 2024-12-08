@@ -1,6 +1,7 @@
 import requests
 import json
 import curses
+import FQSpider
 
 def search_books(query, stdscr):
     page = 1

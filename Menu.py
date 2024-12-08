@@ -29,7 +29,7 @@ while True:
     elif choose == '2':
         os.system('python ./Main/FQRead.py')
     elif choose == '3':
-        os.system('python ./Main/FQ爬虫.py')
+        os.system('python ./Main/FQSpider.py')
     elif choose == '4':
         os.system('python ./Main/FQ推荐.py')
     elif choose == '5':

@@ -95,5 +95,7 @@ def crawl_book(book_id):
         print('unknown')
 
 # 示例调用
-book_id = input('book_id:')
-crawl_book(book_id)
+if __name__ == "__main__":
+    book_id = input('book_id:')
+    crawl_book(book_id)
+
