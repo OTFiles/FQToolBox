@@ -26,10 +26,6 @@ def search_books(query, stdscr):
                 book_data = book['book_data'][0]
                 book_name = book_data['book_name']
                 author = book_data['author']
-                abstract = book_data['abstract']
-                category = book_data['category']
-                score = book_data['score']
-                sub_info = book_data['sub_info']
 
                 x = 0
                 y = idx
@@ -37,10 +33,6 @@ def search_books(query, stdscr):
                     stdscr.attron(curses.A_REVERSE)
                     stdscr.addstr(y, x, f"{book_name} - {author}")
                     stdscr.attroff(curses.A_REVERSE)
-                    stdscr.addstr(y + 1, x, f"简介: {abstract}")
-                    stdscr.addstr(y + 2, x, f"类型: {category}")
-                    stdscr.addstr(y + 3, x, f"分数: {score}")
-                    stdscr.addstr(y + 4, x, f"Sub_info: {sub_info}")
                 else:
                     stdscr.addstr(y, x, f"{book_name} - {author}")
 
@@ -53,14 +45,30 @@ def search_books(query, stdscr):
             elif key == curses.KEY_DOWN and current_row < len(books) - 1:
                 current_row += 1
             elif key == curses.KEY_ENTER or key in [10, 13]:
-                # 执行函数a
-                book_id = books[current_row]['book_data'][0]['book_id']
+                # 显示书本详情
+                book_data = books[current_row]['book_data'][0]
+                book_name = book_data['book_name']
+                author = book_data['author']
+                abstract = book_data['abstract']
+                category = book_data['category']
+                score = book_data['score']
+                sub_info = book_data['sub_info']
+
                 stdscr.clear()
-                stdscr.addstr(0, 0, f"你选择了: {books[current_row]['book_data'][0]['book_name']}")
-                stdscr.addstr(1, 0, f"执行函数a，book_id: {book_id}")
+                stdscr.addstr(0, 0, f"书名: {book_name}")
+                stdscr.addstr(1, 0, f"作者: {author}")
+                stdscr.addstr(2, 0, f"类型: {category}")
+                stdscr.addstr(3, 0, f"分数: {score}")
+                stdscr.addstr(4, 0, f"Sub_info: {sub_info}")
+
+                # 自动换行简介
+                stdscr.addstr(5, 0, "简介:")
+                abstract_lines = wrap_text(abstract, w)
+                for i, line in enumerate(abstract_lines):
+                    stdscr.addstr(6 + i, 0, line)
+
                 stdscr.refresh()
                 stdscr.getch()
-                # 这里可以调用函数a(book_id)
 
             elif key == ord('q'):
                 return
@@ -75,6 +83,21 @@ def search_books(query, stdscr):
             break
         else:
             page = int(p)
+
+def wrap_text(text, width):
+    """自动换行文本"""
+    lines = []
+    while len(text) > width:
+        line = text[:width]
+        first_newline = line.find('\n')
+        if first_newline != -1:
+            lines.append(line[:first_newline])
+            text = text[first_newline + 1:]
+        else:
+            lines.append(line)
+            text = text[width:]
+    lines.append(text)
+    return lines
 
 def main(stdscr):
     curses.curs_set(0)  # 隐藏光标
