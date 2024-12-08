@@ -79,32 +79,16 @@ def verify_and_merge(title_list, item_id_list, name, author, abstract):
             thread.join()
     print('效验完成')
 
-    merge_choice = show_merge_menu()
-    if merge_choice == 'y':
-        content = ""
-        for title in title_list:
-            title = re.sub(r"[\/\\\:\*\?\"\<\>\|]", "_", title)  # 去掉非法字符
-            txt_file = f'./output/{name}.txt'
-            with open(txt_file, 'w', encoding='utf-8') as files:
-                files.write(f'书名:{name}\n')
-                files.write(f'作者:{author}\n')
-                files.write(f'简介:{abstract}\n——————————————\n')
-                with open(f'./output/{name}/{title}.txt', 'r', encoding='utf-8') as file:
-                    content += file.read()
-                    file.close()
-                files.write(content)
-                files.close()
-        print(f'合并完成,已添加到{txt_file}')
-
-def show_merge_menu():
-    choices = ["y. 合并TXT", "n. 不合并TXT"]
-    current_row = 0
-
-    while True:
-        print("\n".join(choices))
-        key = input("选择: ")
-
-        if key == 'y':
-            return 'y'
-        elif key == 'n':
-            return 'n'
+# 删除 show_merge_menu 函数
+# def show_merge_menu():
+#     choices = ["y. 合并TXT", "n. 不合并TXT"]
+#     current_row = 0
+#
+#     while True:
+#         print("\n".join(choices))
+#         key = input("选择: ")
+#
+#         if key == 'y':
+#             return 'y'
+#         elif key == 'n':
+#             return 'n'
