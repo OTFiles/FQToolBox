@@ -36,6 +36,7 @@ def search_books(query, stdscr):
                 else:
                     stdscr.addstr(y, x, f"{book_name} - {author}")
 
+            stdscr.addstr(len(books) + 1, 0, f"当前页: {page}  (按 'n' 下一页, 'p' 上一页, 'q' 退出)")
             stdscr.refresh()
 
             key = stdscr.getch()
@@ -72,17 +73,12 @@ def search_books(query, stdscr):
 
             elif key == ord('q'):
                 return
-
-        stdscr.clear()
-        stdscr.addstr(0, 0, 'page(不输入退出):')
-        stdscr.refresh()
-        curses.echo()  # 启用输入回显
-        p = stdscr.getstr(1, 0).decode('utf-8')  # 获取用户输入
-        curses.noecho()  # 禁用输入回显
-        if p == '':
-            break
-        else:
-            page = int(p)
+            elif key == ord('n'):  # 下一页
+                page += 1
+                break
+            elif key == ord('p') and page > 1:  # 上一页
+                page -= 1
+                break
 
 def wrap_text(text, width):
     """自动换行文本"""
