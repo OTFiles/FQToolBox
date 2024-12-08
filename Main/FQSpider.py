@@ -4,7 +4,7 @@ from tqdm import tqdm
 import re
 from API import book_id_inquire, item_id_inquire
 
-def get_content(title, item_id):
+def get_content(title, item_id, name):
     data = item_id_inquire(item_id)
     title = re.sub(r"[\/\\\:\*\?\"\<\>\|]", "_", title)  # 去掉非法字符
     with open(f'./output/{name}/{title}.txt', mode='w', encoding='utf-8') as f:
@@ -32,7 +32,7 @@ def crawl_book(book_id):
         if c1 == '1':
             threads = []
             for title, item_id in zip(title_list, item_id_list):
-                thread = threading.Thread(target=get_content, args=(title, item_id))
+                thread = threading.Thread(target=get_content, args=(title, item_id, name))
                 threads.append(thread)
             for thread in tqdm(threads):
                 thread.start()
@@ -47,7 +47,7 @@ def crawl_book(book_id):
                     pass
                 else:
                     print(f'提示:{title}没有被创建')
-                    thread = threading.Thread(target=get_content, args=(title, item_id))
+                    thread = threading.Thread(target=get_content, args=(title, item_id, name))
                     threads_1.append(thread)
             if threads_1:
                 for thread in tqdm(threads_1):
@@ -79,7 +79,7 @@ def crawl_book(book_id):
                     print(f"{title}已创建")
                 else:
                     print(f'提示:{title}没有被创建')
-                    thread = threading.Thread(target=get_content, args=(title, item_id))
+                    thread = threading.Thread(target=get_content, args=(title, item_id, name))
                     threads_1.append(thread)
             if threads_1:
                 for thread in tqdm(threads_1):
@@ -90,7 +90,7 @@ def crawl_book(book_id):
         for r in range(len(title_list)):
             print(f'章节 {r + 1} :{title_list[r]}')
         c1 = int(input('选择:'))
-        get_content(title_list[c1 - 1], item_id_list[c1 - 1])
+        get_content(title_list[c1 - 1], item_id_list[c1 - 1], name)
     else:
         print('unknown')
 
@@ -98,4 +98,3 @@ def crawl_book(book_id):
 if __name__ == "__main__":
     book_id = input('book_id:')
     crawl_book(book_id)
-

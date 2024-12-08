@@ -55,6 +55,7 @@ def search_books(query, stdscr):
                 category = book_data['category']
                 score = book_data['score']
                 sub_info = book_data['sub_info']
+                book_id = book_data['book_id']  # 获取 book_id
 
                 stdscr.clear()
                 stdscr.addstr(0, 0, f"书名: {book_name}")
@@ -69,8 +70,19 @@ def search_books(query, stdscr):
                 for i, line in enumerate(abstract_lines):
                     stdscr.addstr(6 + i, 0, line)
 
+                stdscr.addstr(len(abstract_lines) + 6, 0, "按回车键爬取此书详情 (按 'q' 返回)")
                 stdscr.refresh()
-                stdscr.getch()
+
+                key = stdscr.getch()
+                if key == curses.KEY_ENTER or key in [10, 13]:
+                    # 调用 FQSpider 的 crawl_book 函数
+                    FQSpider.crawl_book(book_id)
+                    stdscr.clear()
+                    stdscr.addstr(0, 0, "爬取完成，按任意键返回")
+                    stdscr.refresh()
+                    stdscr.getch()
+                elif key == ord('q'):
+                    break
 
             elif key == ord('q'):
                 return
