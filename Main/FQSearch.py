@@ -75,8 +75,14 @@ def search_books(query, stdscr):
 
                 key = stdscr.getch()
                 if key == curses.KEY_ENTER or key in [10, 13]:
-                    # 调用 FQSpider 的 crawl_book 函数
-                    FQSpider.crawl_book(book_id)
+                    # 显示爬取菜单
+                    choice = show_crawl_menu(stdscr, book_name, author)
+                    if choice == '1':
+                        full_crawl_choice = show_full_crawl_menu(stdscr)
+                        FQSpider.crawl_book(book_id, '1', full_crawl_choice)
+                    elif choice == '2':
+                        FQSpider.crawl_book(book_id, '2')
+
                     stdscr.clear()
                     stdscr.addstr(0, 0, "爬取完成，按任意键返回")
                     stdscr.refresh()
@@ -107,6 +113,64 @@ def wrap_text(text, width):
             text = text[width:]
     lines.append(text)
     return lines
+
+def show_crawl_menu(stdscr, book_name, author):
+    choices = ["1. 爬取全文", "2. 爬取单章"]
+    current_row = 0
+
+    while True:
+        stdscr.clear()
+        stdscr.addstr(0, 0, f"书名: {book_name}")
+        stdscr.addstr(1, 0, f"作者: {author}")
+
+        for idx, choice in enumerate(choices):
+            x = 0
+            y = idx + 2
+            if idx == current_row:
+                stdscr.attron(curses.A_REVERSE)
+                stdscr.addstr(y, x, choice)
+                stdscr.attroff(curses.A_REVERSE)
+            else:
+                stdscr.addstr(y, x, choice)
+
+        stdscr.refresh()
+
+        key = stdscr.getch()
+
+        if key == curses.KEY_UP and current_row > 0:
+            current_row -= 1
+        elif key == curses.KEY_DOWN and current_row < len(choices) - 1:
+            current_row += 1
+        elif key == curses.KEY_ENTER or key in [10, 13]:
+            return choices[current_row][0]  # 返回选择的选项
+
+def show_full_crawl_menu(stdscr):
+    choices = ["1. 全文爬取", "2. 更新爬取(只会爬取未爬取的章节)"]
+    current_row = 0
+
+    while True:
+        stdscr.clear()
+
+        for idx, choice in enumerate(choices):
+            x = 0
+            y = idx
+            if idx == current_row:
+                stdscr.attron(curses.A_REVERSE)
+                stdscr.addstr(y, x, choice)
+                stdscr.attroff(curses.A_REVERSE)
+            else:
+                stdscr.addstr(y, x, choice)
+
+        stdscr.refresh()
+
+        key = stdscr.getch()
+
+        if key == curses.KEY_UP and current_row > 0:
+            current_row -= 1
+        elif key == curses.KEY_DOWN and current_row < len(choices) - 1:
+            current_row += 1
+        elif key == curses.KEY_ENTER or key in [10, 13]:
+            return choices[current_row][0]  # 返回选择的选项
 
 def main(stdscr):
     curses.curs_set(0)  # 隐藏光标
