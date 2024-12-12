@@ -13,7 +13,12 @@
 pip install requests edge-tts asyncio tqdm
 ```
 且还需要安装[mpv](https://mpv.io/)用以播放小说
-
-[如何获取Cookie](https://github.com/jackwd387/FQToolBox/issues/2)
-## 软件截图
-![软件截图](https://github.com/user-attachments/assets/0282a825-1182-4fd5-99ea-9f024d21b1fb)
+##修改了什么
+###Menu
+添加了一个退出选项
+添加了一个TUI菜单，由此，一些功能现在并不兼容，需要等待修复，请稍等
+###搜索
+为搜索功能添加了一个TUI菜单，同时可以在搜索快速爬取小说
+###爬虫
+修改了爬虫脚本的名字，并且打包为几个函数方便调用
+~~为了省事还删掉了合并TXT的功能~~(划掉)
