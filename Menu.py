@@ -45,7 +45,12 @@ def show_menu(stdscr):
             if choice == 'q':
                 break
             elif choice == '1':
+                # 调用 FQSearch.py 并保持 curses 状态
+                curses.def_prog_mode()  # 保存当前 curses 状态
                 os.system('python ./Main/FQSearch.py')
+                curses.reset_prog_mode()  # 恢复 curses 状态
+                stdscr.clear()
+                stdscr.refresh()
             elif choice == '2':
                 fqread_main(stdscr)  # 传递stdscr对象到FQRead.py
             elif choice == '3':

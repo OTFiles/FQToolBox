@@ -1,5 +1,5 @@
-import requests
 import json
+import requests
 import curses
 import FQSpider
 
@@ -64,13 +64,15 @@ def search_books(query, stdscr):
                 stdscr.addstr(2, 0, f"类型: {category}")
                 stdscr.addstr(3, 0, f"分数: {score}")
                 stdscr.addstr(4, 0, f"Sub_info: {sub_info}")
+                stdscr.addstr(5, 0, f"Book_id: {book_id}")  # 添加 book_id
 
                 # 自动换行简介
-                stdscr.addstr(5, 0, "简介:")
+                stdscr.addstr(6, 0, "简介:")
                 abstract_lines = wrap_text(abstract, w)
                 for i, line in enumerate(abstract_lines):
-                    stdscr.addstr(6 + i, 0, line)
+                    stdscr.addstr(7 + i, 0, line)
 
+                # 将提示信息移动到最后一行
                 stdscr.addstr(h - 1, 0, "按回车键爬取此书详情 (按 'q' 返回)")
                 stdscr.refresh()
 
