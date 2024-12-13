@@ -122,7 +122,7 @@ def main(stdscr):
     curses.init_pair(1, curses.COLOR_BLACK, curses.COLOR_WHITE)
 
     stdscr.clear()
-    stdscr.addstr(0, 0, '欢迎使用阅读器')
+    stdscr.addstr(0, 0, '欢迎使用朗读器器')
     stdscr.addstr(1, 0, '按 q 退出')
     stdscr.refresh()
 
