@@ -1,36 +1,55 @@
 import os
 import edge_tts
 import asyncio
-import _thread
-from API import update_progres,user_bookshelf,book_id_inquire,item_id_inquire
-cookie = open('cookie.ini','r').read()
-executable = 'False'
-url = 'https://novel.snssdk.com/api/novel/reader/full/v1/?item_id='
-def thread(p):
-    global content,voice,rate_count,volume_count,executable
-    print('正在爬取并生成音频')
+import curses
+from API import update_progres, user_bookshelf, book_id_inquire, item_id_inquire
+
+def thread(p, stdscr):
+    global content, voice, rate_count, volume_count, executable, title_list, item_id_list, name, output_files, count
+    stdscr.addstr(10, 0, '正在爬取并生成音频')
+    stdscr.refresh()
     if p > len(title_list):
-        None
+        stdscr.addstr(11, 0, '没有更多章节可供播放')
+        stdscr.refresh()
+        stdscr.getch()
+        return
     else:
-        content = item_id_inquire(item_id_list[p-1])[0]
-        print(f'文字数:{len(content)}')
-        asyncio.run(run_tts(title_list[p-1]+content,voice,rate_count,volume_count))
+        content = item_id_inquire(item_id_list[p - 1])[0]
+        stdscr.addstr(11, 0, f'文字数:{len(content)}')
+        stdscr.refresh()
+        asyncio.run(run_tts(title_list[p - 1] + content, voice, rate_count, volume_count, stdscr))
         if executable == 'False':
             executable = 'True'
-async def run_tts(text: str, voice: str,rate:str,volume:str) -> None:
-    global title_list,output_files,count
-    communicate =  edge_tts.Communicate(text=text, voice=voice,rate=rate,volume=volume)
-    await communicate.save(output_files+item_id_list[p-1+count]+'_TEMP.mp3')
-#   模拟浏览器
-headers = {
-    # User-Agent 用户代理, 表示浏览器/设备的基本身份信息
-    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36'
-    #cookie
-    ,'Cookie': cookie
-    }
-# url地址(小说主页)
-if __name__ == '__main__':
-    book_id = input('book_id(输入空则使用最近播放):')
+
+async def run_tts(text: str, voice: str, rate: str, volume: str, stdscr) -> None:
+    global title_list, output_files, count
+    communicate = edge_tts.Communicate(text=text, voice=voice, rate=rate, volume=volume)
+    await communicate.save(output_files + item_id_list[p - 1 + count] + '_TEMP.mp3')
+    stdscr.addstr(12, 0, '音频已生成')
+    stdscr.refresh()
+
+def get_input(prompt, stdscr):
+    stdscr.addstr(8, 0, prompt)
+    stdscr.refresh()
+    curses.echo()
+    user_input = stdscr.getstr(9, 0).decode('utf-8')
+    curses.noecho()
+    stdscr.addstr(8, 0, ' ' * len(prompt))  # 清除提示
+    stdscr.addstr(9, 0, ' ' * len(user_input))  # 清除输入
+    stdscr.refresh()
+    return user_input
+
+def main(stdscr):
+    global content, voice, rate_count, volume_count, executable, title_list, item_id_list, name, output_files, count
+    cookie = open('cookie.ini', 'r').read()
+    executable = 'False'
+    url = 'https://novel.snssdk.com/api/novel/reader/full/v1/?item_id='
+
+    stdscr.clear()
+    stdscr.addstr(0, 0, '欢迎使用阅读器')
+    stdscr.refresh()
+
+    book_id = get_input('book_id(输入空则使用最近播放):', stdscr)
     if book_id == '':
         book_id = user_bookshelf(cookie)[0][0]
     data = book_id_inquire(book_id)
@@ -38,37 +57,50 @@ if __name__ == '__main__':
     item_id_list = data[0]
     name = data[2]
     for r in range(len(title_list)):
-        print(f'章节 {r+1} :{title_list[r]}')
-    p = int(input('选择:'))
+        stdscr.addstr(r + 2, 0, f'章节 {r + 1} :{title_list[r]}')
+    stdscr.refresh()
+
+    p = int(get_input('选择:', stdscr)) - 1  # curses的输入从0开始输出，所以选择-1
+
     count = 0
     content = None
     output_files = './TEMP/' + book_id + '_ceche/'
-    os.system('edge-tts --list-voices')
-    voice = input('请选择音色(默认zh-CN-XiaoxiaoNeural):')
-    rate_count = input('语速大小(默认+0%):')
-    volume_count = input('音量大小(默认+0%):')
+    if not os.path.exists(output_files):
+        os.makedirs(output_files)
+
+    voice = get_input('请选择音色(默认zh-CN-XiaoxiaoNeural):', stdscr)
+    rate_count = get_input('语速大小(默认+0%):', stdscr)
+    volume_count = get_input('音量大小(默认+0%):', stdscr)
+
     if voice == '':
         voice = 'zh-CN-XiaoxiaoNeural'
     if rate_count == '':
         rate_count = '+0%'
     if volume_count == '':
-        volume_count = '+0%' 
-    if not os.path.exists(output_files):
-        os.makedirs(output_files)
-    _thread.start_new_thread(thread,(p+count,))
-    print('等待初始化完毕')
+        volume_count = '+0%'
+
+    stdscr.addstr(10, 0, '初始化完成，开始播放')
+    stdscr.refresh()
+
+    _thread.start_new_thread(thread, (p + count, stdscr))
     while True:
         if executable == 'True':
-            if len(title_list) <= p-1+count:
-                os.system(f'edge-playback --text  "章节播放完毕 感谢使用" --voice '+ voice)
+            if len(title_list) <= p + count:
+                stdscr.addstr(11, 0, '章节播放完毕 感谢使用')
+                stdscr.refresh()
+                stdscr.getch()
                 break
             else:
                 executable = 'False'
-                title = title_list[p-1+count]
-                item_id = item_id_list[p-1+count]
+                title = title_list[p + count]
+                item_id = item_id_list[p + count]
                 count += 1
-                print('即将播放:'+name+':'+title)
-                _thread.start_new_thread(update_progres,(cookie,item_id))
-                _thread.start_new_thread(thread,(p+count,))
-                os.system('mpv '+'"'+output_files+item_id+'_TEMP.mp3'+'"')
-                os.remove(output_files+item_id+'_TEMP.mp3')
+                stdscr.addstr(11, 0, f'即将播放:{name}:{title}')
+                stdscr.refresh()
+                _thread.start_new_thread(update_progres, (cookie, item_id))
+                _thread.start_new_thread(thread, (p + count, stdscr))
+                os.system('mpv ' + '"' + output_files + item_id + '_TEMP.mp3' + '"')
+                os.remove(output_files + item_id + '_TEMP.mp3')
+
+if __name__ == "__main__":
+    curses.wrapper(main)
