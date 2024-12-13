@@ -3,6 +3,7 @@ import json
 import requests
 import curses
 from Main.API import user_inquire
+from Main.FQRead import main as fqread_main
 
 def show_menu(stdscr):
     curses.curs_set(0)  # 隐藏光标
@@ -46,7 +47,7 @@ def show_menu(stdscr):
             elif choice == '1':
                 os.system('python ./Main/FQSearch.py')
             elif choice == '2':
-                os.system('python ./Main/FQRead.py')
+                fqread_main(stdscr)  # 传递stdscr对象到FQRead.py
             elif choice == '3':
                 os.system('python ./Main/FQSpider.py')
             elif choice == '4':

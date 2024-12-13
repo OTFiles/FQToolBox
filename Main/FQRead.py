@@ -1,8 +1,9 @@
 import os
 import edge_tts
 import asyncio
-import curses
-from API import update_progres, user_bookshelf, book_id_inquire, item_id_inquire
+import _thread
+import curses  # 添加curses模块的导入
+from Main.API import update_progres, user_bookshelf, book_id_inquire, item_id_inquire
 
 def thread(p, stdscr):
     global content, voice, rate_count, volume_count, executable, title_list, item_id_list, name, output_files, count
@@ -68,6 +69,7 @@ def main(stdscr):
     if not os.path.exists(output_files):
         os.makedirs(output_files)
 
+    os.system('edge-tts --list-voices')
     voice = get_input('请选择音色(默认zh-CN-XiaoxiaoNeural):', stdscr)
     rate_count = get_input('语速大小(默认+0%):', stdscr)
     volume_count = get_input('音量大小(默认+0%):', stdscr)
@@ -102,5 +104,11 @@ def main(stdscr):
                 os.system('mpv ' + '"' + output_files + item_id + '_TEMP.mp3' + '"')
                 os.remove(output_files + item_id + '_TEMP.mp3')
 
+    # 确保在返回main.py之前恢复光标
+    curses.curs_set(1)
+    stdscr.clear()
+    stdscr.refresh()
+
+# 将main函数暴露给main.py调用
 if __name__ == "__main__":
     curses.wrapper(main)
