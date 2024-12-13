@@ -37,7 +37,8 @@ def search_books(query, stdscr):
                 else:
                     stdscr.addstr(y, x, f"{book_name} - {author}")
 
-            stdscr.addstr(len(books) + 1, 0, f"当前页: {page}  (按 'n' 下一页, 'p' 上一页, 'q' 退出)")
+            # 将当前页信息移动到最后一行
+            stdscr.addstr(h - 1, 0, f"当前页: {page}  (按 'n' 下一页, 'p' 上一页, 'q' 退出)")
             stdscr.refresh()
 
             key = stdscr.getch()
@@ -70,7 +71,7 @@ def search_books(query, stdscr):
                 for i, line in enumerate(abstract_lines):
                     stdscr.addstr(6 + i, 0, line)
 
-                stdscr.addstr(len(abstract_lines) + 6, 0, "按回车键爬取此书详情 (按 'q' 返回)")
+                stdscr.addstr(h - 1, 0, "按回车键爬取此书详情 (按 'q' 返回)")
                 stdscr.refresh()
 
                 key = stdscr.getch()
