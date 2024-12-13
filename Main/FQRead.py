@@ -5,6 +5,10 @@ import _thread
 import curses
 from Main.API import update_progres, user_bookshelf, book_id_inquire, item_id_inquire
 
+# 自定义异常类
+class ExitMenu(Exception):
+    pass
+
 # 预设一些中文音色供选择
 preset_voices = ['zh-CN-XiaoxiaoNeural', 'zh-CN-YunyangNeural', 'zh-CN-YunxiNeural', 'zh-CN-LinglingNeural']
 
@@ -55,18 +59,14 @@ def show_menu(stdscr, items, prompt):
         stdscr.refresh()
         key = stdscr.getch()
 
-        if key == curses.KEY_UP and active_row > 0:
+        if key == ord('q'):
+            raise ExitMenu  # 抛出自定义异常
+        elif key == curses.KEY_UP and active_row > 0:
             active_row -= 1
-        elif key == curses.KEY_UP and current_page > 0:
-            active_row = page_size - 1
-            current_page -= 1
         elif key == curses.KEY_DOWN and active_row < len(items) - 1:
             active_row += 1
-        elif key == curses.KEY_DOWN and end_idx < len(items):
-            active_row = 0
-            current_page += 1
         elif key == curses.KEY_ENTER or key in [10, 13]:
-            return items[start_idx + active_row]
+            return items[active_row]
 
 def show_paginated_menu(stdscr, items, prompt, page_size=10):
     active_row = 0
@@ -96,7 +96,9 @@ def show_paginated_menu(stdscr, items, prompt, page_size=10):
         stdscr.refresh()
         key = stdscr.getch()
 
-        if key == curses.KEY_UP and active_row > 0:
+        if key == ord('q'):
+            raise ExitMenu  # 抛出自定义异常
+        elif key == curses.KEY_UP and active_row > 0:
             active_row -= 1
         elif key == curses.KEY_UP and current_page > 0:
             active_row = page_size - 1
@@ -115,60 +117,72 @@ def main(stdscr):
     executable = 'False'
     url = 'https://novel.snssdk.com/api/novel/reader/full/v1/?item_id='
 
+    # 初始化颜色对
+    curses.start_color()
+    curses.init_pair(1, curses.COLOR_BLACK, curses.COLOR_WHITE)
+
     stdscr.clear()
     stdscr.addstr(0, 0, '欢迎使用阅读器')
+    stdscr.addstr(1, 0, '按 q 退出')
     stdscr.refresh()
 
-    book_id = get_input('book_id(输入空则使用最近播放):', stdscr)
-    if book_id == '':
-        book_id = user_bookshelf(cookie)[0][0]
-    data = book_id_inquire(book_id)
-    title_list = data[1]
-    item_id_list = data[0]
-    name = data[2]
+    try:
+        book_id = get_input('book_id(输入空则使用最近播放):', stdscr)
+        if book_id == '':
+            book_id = user_bookshelf(cookie)[0][0]
+        data = book_id_inquire(book_id)
+        title_list = data[1]
+        item_id_list = data[0]
+        name = data[2]
 
-    # 使用分页菜单选择章节
-    p = show_paginated_menu(stdscr, title_list, '请选择章节：')
-    p = title_list.index(p)
+        # 使用分页菜单选择章节
+        p = show_paginated_menu(stdscr, title_list, '请选择章节：')
+        p = title_list.index(p)
 
-    # 使用普通菜单选择音色
-    voice = show_menu(stdscr, preset_voices, '请选择音色：')
+        # 使用普通菜单选择音色
+        voice = show_menu(stdscr, preset_voices, '请选择音色：')
 
-    rate_count = get_input('语速大小(默认+0%):', stdscr)
-    volume_count = get_input('音量大小(默认+0%):', stdscr)
+        rate_count = get_input('语速大小(默认+0%):', stdscr)
+        volume_count = get_input('音量大小(默认+0%):', stdscr)
 
-    if rate_count == '':
-        rate_count = '+0%'
-    if volume_count == '':
-        volume_count = '+0%'
+        if rate_count == '':
+            rate_count = '+0%'
+        if volume_count == '':
+            volume_count = '+0%'
 
-    stdscr.addstr(10, 0, '初始化完成，开始播放')
-    stdscr.refresh()
+        stdscr.addstr(10, 0, '初始化完成，开始播放')
+        stdscr.refresh()
 
-    _thread.start_new_thread(thread, (p + count, stdscr))
-    while True:
-        if executable == 'True':
-            if len(title_list) <= p + count:
-                stdscr.addstr(11, 0, '章节播放完毕 感谢使用')
-                stdscr.refresh()
-                stdscr.getch()
-                break
-            else:
-                executable = 'False'
-                title = title_list[p + count]
-                item_id = item_id_list[p + count]
-                count += 1
-                stdscr.addstr(11, 0, f'即将播放:{name}:{title}')
-                stdscr.refresh()
-                _thread.start_new_thread(update_progres, (cookie, item_id))
-                _thread.start_new_thread(thread, (p + count, stdscr))
-                os.system('mpv ' + '"' + output_files + item_id + '_TEMP.mp3' + '"')
-                os.remove(output_files + item_id + '_TEMP.mp3')
+        _thread.start_new_thread(thread, (p + count, stdscr))
+        while True:
+            if executable == 'True':
+                if len(title_list) <= p + count:
+                    stdscr.addstr(11, 0, '章节播放完毕 感谢使用')
+                    stdscr.refresh()
+                    stdscr.getch()
+                    break
+                else:
+                    executable = 'False'
+                    title = title_list[p + count]
+                    item_id = item_id_list[p + count]
+                    count += 1
+                    stdscr.addstr(11, 0, f'即将播放:{name}:{title}')
+                    stdscr.refresh()
+                    _thread.start_new_thread(update_progres, (cookie, item_id))
+                    _thread.start_new_thread(thread, (p + count, stdscr))
+                    os.system('mpv ' + '"' + output_files + item_id + '_TEMP.mp3' + '"')
+                    os.remove(output_files + item_id + '_TEMP.mp3')
 
-    # 确保在返回main.py之前恢复光标
-    curses.curs_set(1)
-    stdscr.clear()
-    stdscr.refresh()
+    except ExitMenu:
+        pass  # 捕获退出异常并忽略
+    except Exception as e:
+        stdscr.addstr(13, 0, f'发生异常: {e}')
+        stdscr.refresh()
+        stdscr.getch()
+    finally:
+        # 确保在返回main.py之前恢复光标
+        curses.curs_set(1)
+        curses.endwin()
 
 def get_input(prompt, stdscr):
     stdscr.addstr(8, 0, prompt)
