@@ -9,7 +9,7 @@ def show_menu(stdscr):
     curses.curs_set(0)  # 隐藏光标
     menu_items = [
         "1. 搜索书籍",
-        "2. 阅读书籍",
+        "2. 朗读书籍",
         "3. 爬取书籍",
         "4. 推荐榜",
         "5. 设置",
