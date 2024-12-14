@@ -37,7 +37,8 @@ def show_menu(stdscr, menu_items, init_messages_count):
             choice = menu_items[current_row].split('.')[0]
             if choice == 'q':
                 try:
-                    curses.endwin()  # 确保在退出时结束 curses 模式
+                    # curses.endwin()  # 移除手动调用
+                    pass
                 except curses.error as e:
                     stdscr.addstr(0, 0, f'错误: {e}')
                     stdscr.refresh()
@@ -61,50 +62,6 @@ def show_menu(stdscr, menu_items, init_messages_count):
             elif choice == '6':
                 debug_menu(stdscr, menu_items, init_messages_count)
 
-def set_cookie(stdscr, menu_items, init_messages_count):
-    curses.curs_set(0)
-    stdscr.clear()
-    for idx, message in enumerate(menu_items[:init_messages_count]):
-        stdscr.addstr(idx, 0, message)
-    stdscr.addstr(init_messages_count, 0, '设置Cookie')
-    stdscr.addstr(init_messages_count + 1, 0, '1. 设置Cookie')
-    stdscr.refresh()
-    curses.echo()
-    choice = stdscr.getstr(init_messages_count + 2, 0).decode('utf-8')
-    curses.noecho()
-
-    if choice == '1':
-        while True:
-            stdscr.clear()
-            for idx, message in enumerate(menu_items[:init_messages_count]):
-                stdscr.addstr(idx, 0, message)
-            stdscr.addstr(init_messages_count, 0, 'Cookie:')
-            stdscr.refresh()
-            curses.echo()
-            cookie = stdscr.getstr(init_messages_count + 1, 0).decode('utf-8')
-            curses.noecho()
-
-            data = user_inquire(cookie)
-            if data == 'false':
-                stdscr.clear()
-                for idx, message in enumerate(menu_items[:init_messages_count]):
-                    stdscr.addstr(idx, 0, message)
-                stdscr.addstr(init_messages_count, 0, 'Cookie无效,请重新设置')
-                stdscr.refresh()
-                stdscr.getch()
-            else:
-                with open('cookie.ini', 'w', encoding='utf-8') as f:
-                    f.write(cookie)
-                stdscr.clear()
-                for idx, message in enumerate(menu_items[:init_messages_count]):
-                    stdscr.addstr(idx, 0, message)
-                stdscr.addstr(init_messages_count, 0, f'用户名称:{data[0]}')
-                stdscr.addstr(init_messages_count + 1, 0, f'用户头像URL:{data[1]}')
-                stdscr.addstr(init_messages_count + 2, 0, f'用户id:{data[2]}')
-                stdscr.addstr(init_messages_count + 3, 0, f'用户简介:{data[3]}')
-                stdscr.refresh()
-                stdscr.getch()
-                break
 
 def debug_menu(stdscr, menu_items, init_messages_count):
     curses.curs_set(0)
@@ -176,12 +133,6 @@ def main(stdscr):
     try:
         show_menu(stdscr, menu_items, init_messages_count)
     finally:
-        try:
-            curses.endwin()  # 确保在任何情况下都结束 curses 模式
-        except curses.error as e:
-            stdscr.addstr(0, 0, f'错误: {e}')
-            stdscr.refresh()
-            stdscr.getch()
         os.system('stty sane')  # 恢复终端设置
 
 if __name__ == "__main__":
