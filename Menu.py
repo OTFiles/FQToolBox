@@ -25,7 +25,7 @@ def show_menu(stdscr, menu_items, init_messages_count):
             else:
                 stdscr.addstr(y, x, item)
 
-        stdscr.refresh()
+        stdscr.refresh()  # 修正这里
 
         key = stdscr.getch()
 
@@ -49,7 +49,7 @@ def show_menu(stdscr, menu_items, init_messages_count):
                 curses.def_prog_mode()  # 保存当前 curses 状态
                 os.system('python ./Main/FQSearch.py')
                 curses.reset_prog_mode()  # 恢复 curses 状态
-                curses.refresh()
+                stdscr.refresh()  # 修正这里
             elif choice == '2':
                 fqread_main(stdscr)  # 传递stdscr对象到FQRead.py
             elif choice == '3':
