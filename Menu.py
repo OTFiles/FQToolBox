@@ -5,7 +5,7 @@ import curses
 from Main.API import user_inquire
 from Main.FQRead import main as fqread_main
 
-def show_menu(stdscr):
+def show_menu(stdscr, init_messages):
     curses.curs_set(0)  # 隐藏光标
     menu_items = [
         "1. 搜索书籍",
@@ -18,15 +18,20 @@ def show_menu(stdscr):
     ]
     current_row = 0
 
-    max_len = max(len(item) for item in menu_items)  # 计算最长的菜单项长度
+    max_len = max(len(item) for item in init_messages + menu_items)  # 计算最长的菜单项长度
 
     while True:
         stdscr.clear()
         h, w = stdscr.getmaxyx()
 
+        for idx, message in enumerate(init_messages):
+            x = w // 2 - max_len // 2
+            y = idx
+            stdscr.addstr(y, x, message)
+
         for idx, item in enumerate(menu_items):
-            x = w // 2 - max_len // 2  # 使用最长长度来计算 x 坐标
-            y = h // 2 - len(menu_items) // 2 + idx
+            x = w // 2 - max_len // 2
+            y = len(init_messages) + idx
             if idx == current_row:
                 stdscr.attron(curses.A_REVERSE)
                 stdscr.addstr(y, x, item)
@@ -45,14 +50,20 @@ def show_menu(stdscr):
         elif key == curses.KEY_ENTER or key in [10, 13]:
             choice = menu_items[current_row].split('.')[0]
             if choice == 'q':
+                try:
+                    curses.endwin()  # 确保在退出时结束 curses 模式
+                except curses.error as e:
+                    stdscr.addstr(0, 0, f'错误: {e}')
+                    stdscr.refresh()
+                    stdscr.getch()
+                finally:
+                    os.system('stty sane')  # 恢复终端设置
                 break
             elif choice == '1':
-                # 调用 FQSearch.py 并保持 curses 状态
                 curses.def_prog_mode()  # 保存当前 curses 状态
                 os.system('python ./Main/FQSearch.py')
                 curses.reset_prog_mode()  # 恢复 curses 状态
-                stdscr.clear()
-                stdscr.refresh()
+                curses.refresh()
             elif choice == '2':
                 fqread_main(stdscr)  # 传递stdscr对象到FQRead.py
             elif choice == '3':
@@ -142,7 +153,21 @@ def main(stdscr):
         stdscr.addstr(7, 0, '---------------')
         stdscr.refresh()
 
-    show_menu(stdscr)
+    # 收集初始化信息以便在菜单中显示
+    init_messages = []
+    for i in range(8):  # 假设初始化信息在前8行
+        init_messages.append(stdscr.instr(i, 0).decode('utf-8').strip())
+
+    try:
+        show_menu(stdscr, init_messages)
+    finally:
+        try:
+            curses.endwin()  # 确保在任何情况下都结束 curses 模式
+        except curses.error as e:
+            stdscr.addstr(0, 0, f'错误: {e}')
+            stdscr.refresh()
+            stdscr.getch()
+        os.system('stty sane')  # 恢复终端设置
 
 if __name__ == "__main__":
     curses.wrapper(main)
