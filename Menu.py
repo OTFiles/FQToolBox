@@ -18,12 +18,14 @@ def show_menu(stdscr):
     ]
     current_row = 0
 
+    max_len = max(len(item) for item in menu_items)  # 计算最长的菜单项长度
+
     while True:
         stdscr.clear()
         h, w = stdscr.getmaxyx()
 
         for idx, item in enumerate(menu_items):
-            x = w // 2 - len(item) // 2
+            x = w // 2 - max_len // 2  # 使用最长长度来计算 x 坐标
             y = h // 2 - len(menu_items) // 2 + idx
             if idx == current_row:
                 stdscr.attron(curses.A_REVERSE)
