@@ -5,33 +5,19 @@ import curses
 from Main.API import user_inquire
 from Main.FQRead import main as fqread_main
 
-def show_menu(stdscr, init_messages):
+def show_menu(stdscr, menu_items, init_messages_count):
     curses.curs_set(0)  # 隐藏光标
-    menu_items = [
-        "1. 搜索书籍",
-        "2. 朗读书籍",
-        "3. 爬取书籍",
-        "4. 推荐榜",
-        "5. 设置",
-        "6. DEBUG",
-        "q. 退出"
-    ]
-    current_row = 0
+    current_row = init_messages_count  # 设置起始行在菜单选项开始的地方
 
-    max_len = max(len(item) for item in init_messages + menu_items)  # 计算最长的菜单项长度
+    max_len = max(len(item) for item in menu_items)  # 计算最长的菜单项长度
 
     while True:
         stdscr.clear()
         h, w = stdscr.getmaxyx()
 
-        for idx, message in enumerate(init_messages):
-            x = w // 2 - max_len // 2
-            y = idx
-            stdscr.addstr(y, x, message)
-
         for idx, item in enumerate(menu_items):
-            x = w // 2 - max_len // 2
-            y = len(init_messages) + idx
+            x = w // 2 - max_len // 2  # 使用最长长度来计算 x 坐标
+            y = h // 2 - (len(menu_items) - init_messages_count) // 2 + idx  # 计算 y 坐标，使菜单选项居中
             if idx == current_row:
                 stdscr.attron(curses.A_REVERSE)
                 stdscr.addstr(y, x, item)
@@ -43,7 +29,7 @@ def show_menu(stdscr, init_messages):
 
         key = stdscr.getch()
 
-        if key == curses.KEY_UP and current_row > 0:
+        if key == curses.KEY_UP and current_row > init_messages_count:
             current_row -= 1
         elif key == curses.KEY_DOWN and current_row < len(menu_items) - 1:
             current_row += 1
@@ -71,56 +57,66 @@ def show_menu(stdscr, init_messages):
             elif choice == '4':
                 os.system('python ./Main/FQ推荐.py')
             elif choice == '5':
-                set_cookie(stdscr)
+                set_cookie(stdscr, menu_items, init_messages_count)
             elif choice == '6':
-                debug_menu(stdscr)
+                debug_menu(stdscr, menu_items, init_messages_count)
 
-def set_cookie(stdscr):
+def set_cookie(stdscr, menu_items, init_messages_count):
     curses.curs_set(0)
     stdscr.clear()
-    stdscr.addstr(0, 0, '设置Cookie')
-    stdscr.addstr(1, 0, '1. 设置Cookie')
+    for idx, message in enumerate(menu_items[:init_messages_count]):
+        stdscr.addstr(idx, 0, message)
+    stdscr.addstr(init_messages_count, 0, '设置Cookie')
+    stdscr.addstr(init_messages_count + 1, 0, '1. 设置Cookie')
     stdscr.refresh()
     curses.echo()
-    choice = stdscr.getstr(2, 0).decode('utf-8')
+    choice = stdscr.getstr(init_messages_count + 2, 0).decode('utf-8')
     curses.noecho()
 
     if choice == '1':
         while True:
             stdscr.clear()
-            stdscr.addstr(0, 0, 'Cookie:')
+            for idx, message in enumerate(menu_items[:init_messages_count]):
+                stdscr.addstr(idx, 0, message)
+            stdscr.addstr(init_messages_count, 0, 'Cookie:')
             stdscr.refresh()
             curses.echo()
-            cookie = stdscr.getstr(1, 0).decode('utf-8')
+            cookie = stdscr.getstr(init_messages_count + 1, 0).decode('utf-8')
             curses.noecho()
 
             data = user_inquire(cookie)
             if data == 'false':
                 stdscr.clear()
-                stdscr.addstr(0, 0, 'Cookie无效,请重新设置')
+                for idx, message in enumerate(menu_items[:init_messages_count]):
+                    stdscr.addstr(idx, 0, message)
+                stdscr.addstr(init_messages_count, 0, 'Cookie无效,请重新设置')
                 stdscr.refresh()
                 stdscr.getch()
             else:
                 with open('cookie.ini', 'w', encoding='utf-8') as f:
                     f.write(cookie)
                 stdscr.clear()
-                stdscr.addstr(0, 0, f'用户名称:{data[0]}')
-                stdscr.addstr(1, 0, f'用户头像URL:{data[1]}')
-                stdscr.addstr(2, 0, f'用户id:{data[2]}')
-                stdscr.addstr(3, 0, f'用户简介:{data[3]}')
+                for idx, message in enumerate(menu_items[:init_messages_count]):
+                    stdscr.addstr(idx, 0, message)
+                stdscr.addstr(init_messages_count, 0, f'用户名称:{data[0]}')
+                stdscr.addstr(init_messages_count + 1, 0, f'用户头像URL:{data[1]}')
+                stdscr.addstr(init_messages_count + 2, 0, f'用户id:{data[2]}')
+                stdscr.addstr(init_messages_count + 3, 0, f'用户简介:{data[3]}')
                 stdscr.refresh()
                 stdscr.getch()
                 break
 
-def debug_menu(stdscr):
+def debug_menu(stdscr, menu_items, init_messages_count):
     curses.curs_set(0)
     stdscr.clear()
-    stdscr.addstr(0, 0, 'DEBUG菜单')
-    stdscr.addstr(1, 0, '1. api测试')
-    stdscr.addstr(2, 0, '2. 番茄听书')
+    for idx, message in enumerate(menu_items[:init_messages_count]):
+        stdscr.addstr(idx, 0, message)
+    stdscr.addstr(init_messages_count, 0, 'DEBUG菜单')
+    stdscr.addstr(init_messages_count + 1, 0, '1. api测试')
+    stdscr.addstr(init_messages_count + 2, 0, '2. 番茄听书')
     stdscr.refresh()
     curses.echo()
-    choice = stdscr.getstr(3, 0).decode('utf-8')
+    choice = stdscr.getstr(init_messages_count + 3, 0).decode('utf-8')
     curses.noecho()
 
     if choice == '1':
@@ -132,10 +128,13 @@ def main(stdscr):
     # 初始化
     curses.curs_set(0)  # 隐藏光标
     stdscr.clear()
-    stdscr.addstr(0, 0, '欢迎使用')
-    stdscr.addstr(1, 0, '一言:' + json.loads(requests.get(url='https://v1.hitokoto.cn').text)['hitokoto'])
-    stdscr.addstr(2, 0, '---------------')
-    stdscr.refresh()
+
+    # 获取初始化信息
+    init_messages = [
+        "欢迎使用",
+        "一言:" + json.loads(requests.get(url='https://v1.hitokoto.cn').text)['hitokoto'],
+        "---------------"
+    ]
 
     if not os.path.exists('cookie.ini'):
         with open('cookie.ini', 'w', encoding='utf-8') as ce:
@@ -144,22 +143,38 @@ def main(stdscr):
     with open('cookie.ini', 'r', encoding='utf-8') as data:
         login_data = user_inquire(data.read())
         if login_data == 'false':
-            stdscr.addstr(3, 0, '登录失败,部分功能无法使用，请配置cookie')
+            init_messages.extend([
+                "登录失败,部分功能无法使用，请配置cookie",
+                "---------------"
+            ])
         else:
-            stdscr.addstr(3, 0, f'用户名称:{login_data[0]}')
-            stdscr.addstr(4, 0, f'用户头像URL:{login_data[1]}')
-            stdscr.addstr(5, 0, f'用户id:{login_data[2]}')
-            stdscr.addstr(6, 0, f'用户简介:{login_data[3]}')
-        stdscr.addstr(7, 0, '---------------')
-        stdscr.refresh()
+            init_messages.extend([
+                f"用户名称:{login_data[0]}",
+                f"用户头像URL:{login_data[1]}",
+                f"用户id:{login_data[2]}",
+                f"用户简介:{login_data[3]}",
+                "---------------"
+            ])
 
-    # 收集初始化信息以便在菜单中显示
-    init_messages = []
-    for i in range(8):  # 假设初始化信息在前8行
-        init_messages.append(stdscr.instr(i, 0).decode('utf-8').strip())
+    # 定义菜单选项
+    menu_options = [
+        "1. 搜索书籍",
+        "2. 朗读书籍",
+        "3. 爬取书籍",
+        "4. 推荐榜",
+        "5. 设置",
+        "6. DEBUG",
+        "q. 退出"
+    ]
+
+    # 合并初始化信息和菜单选项
+    menu_items = init_messages + menu_options
+
+    # 初始化信息的数量
+    init_messages_count = len(init_messages)
 
     try:
-        show_menu(stdscr, init_messages)
+        show_menu(stdscr, menu_items, init_messages_count)
     finally:
         try:
             curses.endwin()  # 确保在任何情况下都结束 curses 模式
